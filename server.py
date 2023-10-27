@@ -106,6 +106,8 @@ def main():
 
         Hash = RSA.decrypt(public, RSA_Hash)
 
+        # print("Hash: ", RSA_Hash)
+
         # hashing the Plaintext
         hashed_PlainText = hashlib.sha256(PlainText.encode()).hexdigest()
 
