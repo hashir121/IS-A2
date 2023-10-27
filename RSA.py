@@ -104,37 +104,3 @@ def decrypt(pk, ciphertext):
     # Return the array of bytes as a string
     plain = [chr(int(char2)) for char2 in aux]
     return ''.join(plain)
-
-
-if __name__ == '__main__':
-    '''
-    Detect if the script is being run directly by the user
-    '''
-    print("===========================================================================================================")
-    print("================================== RSA Encryptor / Decrypter ==============================================")
-    print(" ")
-
-    p = 17
-    q = 29
-
-    print(" - Generating your public / private key-pairs now . . .")
-
-    public, private = generate_key_pair(p, q)
-
-    print(" - Your public key is ", public,
-          " and your private key is ", private)
-
-    message = input(" - Enter a message to encrypt with your public key: ")
-    encrypted_msg = encrypt(public, message)
-
-    print('Type of encryption: ', type(encrypted_msg))
-
-    print(" - Your encrypted message is: ",
-          ''.join(map(lambda x: str(x), encrypted_msg)))
-    print(" - Decrypting message with private key ", private, " . . .")
-    print(" - Your message is: ", decrypt(private, encrypted_msg))
-
-    print('Type of decryption: ', type(decrypt(private, encrypted_msg)))
-    print(" ")
-    print("============================================ END ==========================================================")
-    print("===========================================================================================================")

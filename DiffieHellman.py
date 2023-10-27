@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 import hashlib
 from binascii import hexlify  # For debug output
 
@@ -23,7 +22,7 @@ class DiffieHellman(object):
     a 540+ bit exponent.
     """
 
-    def __init__(self, generator=2, group=17, keyLength=540):
+    def __init__(self, generator=2, group=5, keyLength=540):
         """
         Generate the public and private keys.
         """
@@ -33,7 +32,7 @@ class DiffieHellman(object):
         default_generator = 2
         valid_generators = [2, 3, 5, 7]
 
-        # Sanity check fors generator and keyLength
+        # Sanity check for generator and keyLength
         if (generator not in valid_generators):
             print("Error: Invalid generator. Using default.")
             self.generator = default_generator
@@ -51,11 +50,11 @@ class DiffieHellman(object):
         self.privateKey = self.genPrivateKey(keyLength)
         self.publicKey = self.genPublicKey()
 
-    def getPrime(self, group=17):
+    def getPrime(self, group=5):
         """
         Given a group number, return a prime.
         """
-        default_group = 17
+        default_group = 5
 
         primes = {
             5:  0xFFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFF,
@@ -170,23 +169,3 @@ class DiffieHellman(object):
         print("Shared secret[{0}]: {1}".format(self.sharedSecret.bit_length(),
                                                self.sharedSecret))
         print("Shared key[{0}]: {1}".format(len(self.key), hexlify(self.key)))
-
-
-# if __name__ == "__main__":
-#     """
-#     Run an example Diffie-Hellman exchange
-#     """
-#     a = DiffieHellman()
-#     b = DiffieHellman()
-
-#     a.genKey(b.publicKey)
-#     b.genKey(a.publicKey)
-
-#     if (a.getKey() == b.getKey()):
-#         print("Shared keys match.")
-#         print("Key a :", hexlify(a.key))
-#         print("Key b :", hexlify(b.key))
-#     else:
-#         print("Shared secrets didn't match!")
-#         print("Shared secret A: ", a.genSecret(b.publicKey))
-#         print("Shared secret B: ", b.genSecret(a.publicKey))
