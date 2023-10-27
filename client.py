@@ -2,6 +2,9 @@ import socket
 import hashlib
 import DiffieHellman
 from binascii import hexlify
+import RSA
+import AES
+import pickle
 
 HOST = 'localhost'
 PORT = 5000
@@ -34,6 +37,7 @@ def main():
         print('Authentication failed. Closing connection...')
         return
 
+    print('Authentication Successfull!!!!')
     client = DiffieHellman.DiffieHellman()
 
     serverpublickey = client_socket.recv(1024)
@@ -44,19 +48,61 @@ def main():
 
     private_key = hexlify(client.getKey()).decode()
     # print(private_key)
-    return
+
+    # crearting AES cypher using private_key
+    aes_cipher = AES.AESCipher(private_key)
+
+    # private and public key for RSA
+    p = 17
+    q = 29
+    # public = (383, 493)
+    # private = (255, 493)
+
+    # generating public and private keys
+    public, private = RSA.generate_key_pair(p, q)
+
+    # print("Public Key: ", public)
+    # print("Private Key: ", private)
+
+    # sending public key to server
+    Sendingkey = pickle.dumps(public)
+    client_socket.send(Sendingkey)
 
     while flag:
         # Now, you can send as many messages as you want to the server
         user_input = input(
-            'Enter a message to send to the server (or `exit` to quit): ')
+            'Enter a message to send to the server (or `quit` to quit): ')
 
-        if user_input == 'exit':
+        if user_input == 'quit':
             client_socket.sendall(user_input.encode())
             client_socket.close()
             break
 
-        client_socket.sendall(user_input.encode())
+        # hashing
+        hashed_input = hashlib.sha256(user_input.encode()).hexdigest()
+
+        # print("Hashed Input: ", hashed_input)
+        # encrypting the hash with private key
+        RSA_Hash = RSA.encrypt(private, hashed_input)
+
+        # print("RSA Hash: ", RSA_Hash)
+        # print("RSA hash type: ", type(RSA_Hash))
+        # decripting RSA hash
+        # hashed = RSA.decrypt(public, RSA_Hash)
+        # print("RSA Hash: ", hashed)
+
+        # Calculate the length of RSA_HASH and convert it to a 10-character string
+        rsa_length_str = str(len(RSA_Hash)).zfill(10)
+
+        # Concatenating the length of RSA_HASH, RSA_HASH, and user_input
+        concatenated = f'{rsa_length_str}{RSA_Hash}{user_input}'
+
+        # print("Concatenated: ", concatenated)
+
+        # encrypting the concatenated message with AES
+        encrypted_message = aes_cipher.encrypt(concatenated)
+
+        client_socket.sendall(encrypted_message.encode('utf-8'))
 
 
 if __name__ == '__main__':

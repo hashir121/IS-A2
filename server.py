@@ -3,6 +3,10 @@ import hashlib
 import secrets
 import DiffieHellman
 from binascii import hexlify
+import RSA
+import AES
+import re
+import pickle
 
 HOST = 'localhost'
 PORT = 5000
@@ -41,7 +45,7 @@ def main():
         client_socket.send("False".encode())
         client_socket.close()  # Close the client connection
         server_socket.close()  # Close the server socket
-        return  # Exit the program
+        return  # quit the program
 
     serverobject = DiffieHellman.DiffieHellman()
     # sending public key of server
@@ -56,19 +60,69 @@ def main():
     private_key = hexlify(serverobject.getKey()).decode()
     # print(private_key)
 
-    return
+    # crearting AES cypher using private_key
+    aes_cipher = AES.AESCipher(private_key)
+
+    # private and public key for RSA
+    p = 17
+    q = 29
+
+    # recieving public and private key of client and decrypt it usin aes
+
+    # recieving public key of client
+    public = client_socket.recv(1024)
+
+    public = pickle.loads(public)
+    # print("Public Key: ", public)
 
     while True:
         data = client_socket.recv(1024).decode()
-        if data == 'exit':
+        if data == 'quit':
             break  # Break out of the loop to close the connection
 
-        print(f'Received message from client: {data}')
+        # print(f'Encrypted Message recieved from the client: {data}')
 
+        AES_decripted = aes_cipher.decrypt(data)
+
+        # print(f'Decrypted Message: {AES_decripted}')
+
+        start_index = AES_decripted.find("[")
+        end_index = AES_decripted.find("]")
+
+        # Extract text inside the square brackets
+        inside_brackets = AES_decripted[start_index + 1:end_index]
+
+        # Extract text after the closing bracket
+        PlainText = AES_decripted[end_index + 1:]
+
+        inside_brackets = inside_brackets.split(', ')
+        RSA_Hash = [int(item) for item in inside_brackets]
+
+        # print("RSA Hash: ", RSA_Hash)
+        # print('RSA Hash type: ', type(RSA_Hash))
+        # print("PlainText: ", PlainText)
+        # print('PlainText type: ', type(PlainText))
+        # print('plain text length: ', len(PlainText))
+
+        Hash = RSA.decrypt(public, RSA_Hash)
+
+        # hashing the Plaintext
+        hashed_PlainText = hashlib.sha256(PlainText.encode()).hexdigest()
+
+        # print('Hashed Message: ' + Hash)
+        # print('Hashed Plaintext: ' + hashed_PlainText)
+
+        # printing plain text
+        print("Plain Text: ", PlainText)
+
+        if Hash == hashed_PlainText:
+            print("Message is not tampered")
+        else:
+            print("Message is tampered")
     # Close the client socket
     client_socket.close()
 
-    # Close the server socket (this will only happen if the server is manually terminated)
+    # Close the server socket
     server_socket.close()
 
 
